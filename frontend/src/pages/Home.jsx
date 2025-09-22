@@ -1,15 +1,17 @@
 import React from 'react'
 import Header from '../components/Header'
-import TopInstructors from '../components/TopInstructors'  // Fixed: Changed from TopDoctors to TopInstructors
+ // Fixed: Changed from TopDoctors to TopInstructors
 import Banner from '../components/Banner'
 import TopCourses from '../components/TopCourses'
+import FeaturedInstructors from '../components/FeaturedInstructors'
 import StudentTestimonials from '../components/StudentTestimonials'
 const Home = () => {
   return (
     <div>
       <Header />
       <TopCourses />
-      <TopInstructors />  
+      <FeaturedInstructors />
+  
       <Banner />
       <StudentTestimonials />
       

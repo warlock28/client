@@ -15,7 +15,8 @@ import {
   Phone,
   Home,
   Users,
-  Settings
+  Settings,
+  BarChart3
 } from 'lucide-react'
 
 const Navbar = () => {
@@ -133,6 +134,7 @@ const Navbar = () => {
                       </div>
                       <div className="py-1">
                         {[
+                          { icon: BarChart3, label: 'Dashboard', onClick: () => navigate('/dashboard') },
                           { icon: User, label: 'My Profile', onClick: () => navigate('/my-profile') },
                           { icon: Calendar, label: 'My Consultations', onClick: () => navigate('/my-consultations') },
                           { icon: Settings, label: 'Settings', onClick: () => navigate('/settings') },
@@ -158,12 +160,20 @@ const Navbar = () => {
                   )}
                 </div>
               ) : (
-                <button 
-                  onClick={() => navigate('/login')} 
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl hidden md:block"
-                >
-                  Sign In
-                </button>
+                <div className="hidden md:flex items-center space-x-3">
+                  <button 
+                    onClick={() => navigate('/login')} 
+                    className="text-gray-700 hover:text-blue-600 px-4 py-2 rounded-lg font-medium transition-all duration-300"
+                  >
+                    Sign In
+                  </button>
+                  <button 
+                    onClick={() => navigate('/register')} 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    Register
+                  </button>
+                </div>
               )}
               
               {/* Mobile Menu Button */}
@@ -226,12 +236,18 @@ const Navbar = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-6">
+                  <div className="mb-6 space-y-3">
                     <button 
                       onClick={() => { navigate('/login'); closeMenu() }}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium"
+                      className="w-full border border-blue-600 text-blue-600 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors"
                     >
                       Sign In
+                    </button>
+                    <button 
+                      onClick={() => { navigate('/register'); closeMenu() }}
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium"
+                    >
+                      Register
                     </button>
                   </div>
                 )}

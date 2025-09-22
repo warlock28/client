@@ -1,69 +1,119 @@
-import axios from 'axios'
-import React, { useContext, useState } from 'react'
-import { DoctorContext } from '../context/DoctorContext'
-import { AdminContext } from '../context/AdminContext'
-import { toast } from 'react-toastify'
+import React, { useContext, useState } from 'react';
+import { AppContext } from '../context/AppContext';
+import { assets } from '../assets/assets';
 
 const Login = () => {
+    const [userType, setUserType] = useState('admin');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    
+    const { login, loading } = useContext(AppContext);
 
-  const [state, setState] = useState('Admin')
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        await login(email, password, userType);
+    };
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8">
+                <div>
+                    <h1 className="mt-6 text-center text-3xl font-bold text-gray-900">
+                        LawEdu
+                    </h1>
+                    <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+                        Sign in to your account
+                    </h2>
+                    <p className="mt-2 text-center text-sm text-gray-600">
+                        Access the admin panel
+                    </p>
+                </div>
+                
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    <div className="rounded-md shadow-sm -space-y-px">
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                User Type
+                            </label>
+                            <div className="flex space-x-4">
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        value="admin"
+                                        checked={userType === 'admin'}
+                                        onChange={(e) => setUserType(e.target.value)}
+                                        className="mr-2 text-blue-600"
+                                    />
+                                    <span className="text-sm">Admin</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        value="instructor"
+                                        checked={userType === 'instructor'}
+                                        onChange={(e) => setUserType(e.target.value)}
+                                        className="mr-2 text-blue-600"
+                                    />
+                                    <span className="text-sm">Instructor</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label htmlFor="email-address" className="sr-only">
+                                Email address
+                            </label>
+                            <input
+                                id="email-address"
+                                name="email"
+                                type="email"
+                                autoComplete="email"
+                                required
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="Email address"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        
+                        <div>
+                            <label htmlFor="password" className="sr-only">
+                                Password
+                            </label>
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autoComplete="current-password"
+                                required
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="Password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-  const backendUrl = import.meta.env.VITE_BACKEND_URL
-
-  const { setDToken } = useContext(DoctorContext)
-  const { setAToken } = useContext(AdminContext)
-
-  const onSubmitHandler = async (event) => {
-    event.preventDefault();
-
-    if (state === 'Admin') {
-
-      const { data } = await axios.post(backendUrl + '/api/admin/login', { email, password })
-      if (data.success) {
-        setAToken(data.token)
-        localStorage.setItem('aToken', data.token)
-      } else {
-        toast.error(data.message)
-      }
-
-    } else {
-
-      const { data } = await axios.post(backendUrl + '/api/doctor/login', { email, password })
-      if (data.success) {
-        setDToken(data.token)
-        localStorage.setItem('dToken', data.token)
-      } else {
-        toast.error(data.message)
-      }
-
-    }
-
-  }
-
-  return (
-    <form onSubmit={onSubmitHandler} className='min-h-[80vh] flex items-center'>
-      <div className='flex flex-col gap-3 m-auto items-start p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-[#5E5E5E] text-sm shadow-lg'>
-        <p className='text-2xl font-semibold m-auto'><span className='text-primary'>{state}</span> Login</p>
-        <div className='w-full '>
-          <p>Email</p>
-          <input onChange={(e) => setEmail(e.target.value)} value={email} className='border border-[#DADADA] rounded w-full p-2 mt-1' type="email" required />
+                    <div>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loading ? (
+                                <div className="flex items-center">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Signing in...
+                                </div>
+                            ) : (
+                                `Sign in as ${userType.charAt(0).toUpperCase() + userType.slice(1)}`
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div className='w-full '>
-          <p>Password</p>
-          <input onChange={(e) => setPassword(e.target.value)} value={password} className='border border-[#DADADA] rounded w-full p-2 mt-1' type="password" required />
-        </div>
-        <button className='bg-primary text-white w-full py-2 rounded-md text-base'>Login</button>
-        {
-          state === 'Admin'
-            ? <p>Doctor Login? <span onClick={() => setState('Doctor')} className='text-primary underline cursor-pointer'>Click here</span></p>
-            : <p>Admin Login? <span onClick={() => setState('Admin')} className='text-primary underline cursor-pointer'>Click here</span></p>
-        }
-      </div>
-    </form>
-  )
-}
+    );
+};
 
-export default Login
+export default Login;

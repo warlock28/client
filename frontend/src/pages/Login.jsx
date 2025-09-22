@@ -1,114 +1,121 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Mail, Lock, BookOpen } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, LogIn, ArrowLeft, User, BookOpen } from 'lucide-react';
 
 const Login = () => {
-  const { backendUrl, token, setToken, setUserData } = useContext(AppContext);
+  const { backendUrl, token, setToken, setUserData, setInstructorProfile } = useContext(AppContext);
   const navigate = useNavigate();
 
-  const [state, setState] = useState('Sign Up'); // toggle between 'Sign Up' and 'Login'
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
-    password: '',
+    password: ''
   });
+  // Removed userType state - only student login allowed
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Handle input changes
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  // Redirect if already logged in
+  useEffect(() => {
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [token, navigate]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
-  // Submit login or signup form
-  const onSubmitHandler = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
 
     try {
-      const endpoint = state === 'Sign Up' ? '/api/auth/register' : '/api/auth/login';
-      const payload =
-        state === 'Sign Up'
-          ? { name: formData.name, email: formData.email, password: formData.password }
-          : { email: formData.email, password: formData.password };
-
-      const { data } = await axios.post(`${backendUrl}${endpoint}`, payload);
+      const { data } = await axios.post(`${backendUrl}/api/auth/login`, {
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password
+      });
 
       if (data.success) {
         localStorage.setItem('token', data.token);
         setToken(data.token);
         setUserData(data.user);
-        toast.success(state === 'Sign Up' ? 'Account created successfully!' : 'Welcome back!');
-        navigate('/');
+        
+        // Note: Instructor login removed from student interface
+        
+        toast.success(`Welcome back, ${data.user.name}!`);
+        
+        // Navigate based on user role
+        if (data.user.role === 'admin') {
+          // Redirect admins to admin panel
+          window.location.href = '/admin';
+        } else {
+          // Students go to main dashboard
+          navigate('/dashboard');
+        }
       } else {
-        toast.error(data.message || 'Authentication failed');
+        toast.error(data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Auth error:', error);
-      toast.error(error.response?.data?.message || 'Authentication failed');
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Toggle form state between 'Sign Up' and 'Login'
-  const toggleState = () => {
-    setState(prev => (prev === 'Sign Up' ? 'Login' : 'Sign Up'));
-    setFormData({ name: '', email: '', password: '' });
-    setShowPassword(false);
-  };
-
-  // Redirect to home if already logged in
-  useEffect(() => {
-    if (token) {
-      navigate('/');
-    }
-  }, [token, navigate]);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="mb-6 flex items-center text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </button>
+
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-4">
-            <BookOpen className="w-8 h-8 text-white" />
+            <LogIn className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {state === 'Sign Up' ? 'Join LawEdu' : 'Welcome Back'}
+            Welcome Back
           </h1>
           <p className="text-gray-600">
-            {state === 'Sign Up' ? 'Create your account to start learning' : 'Sign in to continue your legal education'}
+            Sign in to continue your legal education journey
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <form onSubmit={onSubmitHandler} className="space-y-6">
-            <div className={`transition-all duration-300 ${state === 'Sign Up' ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0 overflow-hidden'}`}>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={e => handleInputChange('name', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="Enter your full name"
-                  required={state === 'Sign Up'}
-                  tabIndex={state === 'Sign Up' ? 0 : -1}
-                />
-              </div>
+        {/* Login Form */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Student Login Info */}
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-600">
+                Student Portal Login
+              </p>
             </div>
-
+            {/* Email Field */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Email Address
+              </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="email"
+                  name="email"
                   value={formData.email}
-                  onChange={e => handleInputChange('email', e.target.value)}
+                  onChange={handleInputChange}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Enter your email"
                   required
@@ -116,14 +123,18 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Password Field */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="password"
                   value={formData.password}
-                  onChange={e => handleInputChange('password', e.target.value)}
+                  onChange={handleInputChange}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="Enter your password"
                   required
@@ -138,45 +149,59 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Forgot Password Link */}
+            <div className="text-right">
+              <button
+                type="button"
+                className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
               className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 ${
-                loading ? 'opacity-70 cursor-not-allowed' : 'hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg transform hover:scale-105'
+                loading 
+                  ? 'opacity-70 cursor-not-allowed' 
+                  : 'hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg transform hover:scale-105'
               }`}
             >
               {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  {state === 'Sign Up' ? 'Creating Account...' : 'Signing In...'}
+                  Signing In...
                 </div>
               ) : (
-                state === 'Sign Up' ? 'Create Account' : 'Sign In'
+                'Sign In'
               )}
             </button>
 
-            <div className="text-center">
+            {/* Register Link */}
+            <div className="text-center pt-4 border-t border-gray-200">
               <p className="text-gray-600">
-                {state === 'Sign Up' ? 'Already have an account?' : "Don't have an account?"}{' '}
-                <button
-                  type="button"
-                  onClick={toggleState}
-                  className="text-blue-600 hover:text-blue-800 font-semibold underline transition-colors"
+                Don't have an account?{' '}
+                <Link
+                  to="/register"
+                  className="text-blue-600 hover:text-blue-800 font-semibold transition-colors"
                 >
-                  {state === 'Sign Up' ? 'Sign In' : 'Sign Up'}
-                </button>
+                  Create Account
+                </Link>
               </p>
             </div>
           </form>
+        </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              By {state === 'Sign Up' ? 'creating an account' : 'signing in'}, you agree to our{' '}
-              <a href="/terms" className="text-blue-600 hover:text-blue-800 underline">Terms of Service</a>{' '}
-              and{' '}
-              <a href="/privacy" className="text-blue-600 hover:text-blue-800 underline">Privacy Policy</a>.
-            </p>
-          </div>
+        {/* Footer */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-gray-500">
+            By signing in, you agree to our{' '}
+            <Link to="/terms" className="text-blue-600 hover:text-blue-800">Terms of Service</Link>{' '}
+            and{' '}
+            <Link to="/privacy" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link>
+          </p>
         </div>
       </div>
     </div>

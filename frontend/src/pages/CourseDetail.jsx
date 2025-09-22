@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -16,49 +16,48 @@ import {
   ChevronDown,
   HelpCircle,
 } from 'lucide-react';
-import axios from 'axios';
+import { coursesData } from '../data/coursesData';
+import { AppContext } from '../context/AppContext';
+import { toast } from 'react-toastify';
 
 const CourseDetail = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const { token, userData } = useContext(AppContext);
 
   const [activeTab, setActiveTab] = useState('overview');
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [course, setCourse] = useState(null);
   const [courseFaqs, setCourseFaqs] = useState([]);
 
-  // Fetch course data from backend API
+  // Load course data from local coursesData
   useEffect(() => {
-    async function fetchCourse() {
-      try {
-        const res = await axios.get(`/api/courses/${courseId}`);
-        if (res.data.success) {
-          setCourse(res.data.course);
-        } else {
-          setCourse(null);
+    const foundCourse = coursesData.find(c => c.id === courseId);
+    setCourse(foundCourse || null);
+    
+    // Sample FAQs data for now
+    if (foundCourse) {
+      setCourseFaqs([
+        {
+          question: "What is the duration of this course?",
+          answer: `This course runs for ${foundCourse.duration}, providing comprehensive coverage of all essential topics.`
+        },
+        {
+          question: "Do I get a certificate upon completion?",
+          answer: "Yes, you'll receive a certificate of completion that you can add to your resume and LinkedIn profile."
+        },
+        {
+          question: "Is this course suitable for beginners?",
+          answer: `This course is designed for ${foundCourse.level} level students, so you'll get the right level of instruction for your needs.`
+        },
+        {
+          question: "What if I'm not satisfied with the course?",
+          answer: "We offer a 30-day money-back guarantee if you're not completely satisfied with the course content."
         }
-      } catch (error) {
-        console.error(error);
-        setCourse(null);
-      }
+      ]);
+    } else {
+      setCourseFaqs([]);
     }
-
-    async function fetchFaqs() {
-      try {
-        const res = await axios.get(`/api/courses/${courseId}/faqs`);
-        if (res.data.success) {
-          setCourseFaqs(res.data.faqs);
-        } else {
-          setCourseFaqs([]);
-        }
-      } catch (error) {
-        console.error(error);
-        setCourseFaqs([]);
-      }
-    }
-
-    fetchCourse();
-    fetchFaqs();
   }, [courseId]);
 
   if (!course) {
@@ -89,6 +88,28 @@ const CourseDetail = () => {
 
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+
+  // Handle enrollment click
+  const handleEnrollClick = () => {
+    if (!token || !userData) {
+      toast.error('Please sign in to enroll in courses');
+      navigate('/login?mode=login');
+      return;
+    }
+    // TODO: Implement enrollment logic
+    toast.success('Enrollment feature coming soon!');
+  };
+
+  // Handle preview click
+  const handlePreviewClick = () => {
+    if (!token || !userData) {
+      toast.error('Please sign in to preview courses');
+      navigate('/login?mode=login');
+      return;
+    }
+    // TODO: Implement preview logic
+    toast.info('Preview feature coming soon!');
   };
 
   return (
@@ -288,25 +309,31 @@ const CourseDetail = () => {
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 sticky top-20 sm:top-24">
               <div className="text-center mb-6">
                 <div className="flex items-center justify-center space-x-2 mb-2">
-                  <span className="text-2xl sm:text-3xl font-bold text-gray-900">₹{course.price}</span>
+                  <span className="text-2xl sm:text-3xl font-bold text-gray-900">${course.price}</span>
                   {course.originalPrice && (
-                    <span className="text-lg sm:text-xl text-gray-400 line-through">₹{course.originalPrice}</span>
+                    <span className="text-lg sm:text-xl text-gray-400 line-through">${course.originalPrice}</span>
                   )}
                 </div>
                 {course.originalPrice && (
                   <p className="text-green-600 font-medium text-sm sm:text-base">
-                    Save ₹{course.originalPrice - course.price}!
+                    Save ${course.originalPrice - course.price}!
                   </p>
                 )}
               </div>
 
               <div className="space-y-3 sm:space-y-4 mb-6">
-                <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base">
-                  Enroll Now
+                <button 
+                  onClick={handleEnrollClick}
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                >
+                  {token && userData ? 'Enroll Now' : 'Sign in to Enroll'}
                 </button>
-                <button className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg sm:rounded-xl font-medium hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center text-sm sm:text-base">
+                <button 
+                  onClick={handlePreviewClick}
+                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg sm:rounded-xl font-medium hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center text-sm sm:text-base"
+                >
                   <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Preview Course
+                  {token && userData ? 'Preview Course' : 'Sign in to Preview'}
                 </button>
               </div>
 

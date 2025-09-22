@@ -1,4 +1,4 @@
-import User from '../models/User.js';
+import User from '../models/user.js';
 import Instructor from '../models/Instructor.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -33,13 +33,11 @@ const register = async (req, res) => {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password: hashedPassword,
-      role: role || 'user',
+      role: (role && role !== 'instructor') ? role : 'user', // Only allow user or admin roles in self-registration
     });
 
-    // If instructor, add extra document
-    if (user.role === 'instructor') {
-      await Instructor.create({ user: user._id });
-    }
+    // Note: Instructor accounts can only be created by admins
+    // Self-registration is only allowed for students
 
     const token = generateToken(user);
 
@@ -75,6 +73,13 @@ const login = async (req, res) => {
 
     if (!user.isActive) return res.status(403).json({ success: false, message: 'Account deactivated' });
 
+    // If user is an instructor, fetch instructor profile
+    let instructorProfile = null;
+    if (user.role === 'instructor') {
+      instructorProfile = await Instructor.findOne({ user: user._id })
+        .populate('courses', 'title category price');
+    }
+
     const token = generateToken(user);
 
     res.json({
@@ -85,7 +90,10 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-      }
+        image: user.image,
+        phone: user.phone,
+      },
+      instructorProfile: instructorProfile || null
     });
   } catch (error) {
     console.error('Login Error:', error);

@@ -3,14 +3,19 @@ import cors from 'cors';
 import 'dotenv/config';
 import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
+import ensureUploadsDir from './middleware/ensureUploads.js';
 
 import authRoutes from './routes/authRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
 import enrollmentRoutes from './routes/enrollmentRoutes.js';
 import instructorRoutes from './routes/instructorRoutes.js';
+// instructorDashboardRoutes removed - functionality moved to admin panel
+import bookingRoutes from './routes/bookingRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import adminInstructorRoutes from './routes/adminInstructorRoutes.js';
+import instructorApiRoutes from './routes/instructorApiRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +25,9 @@ connectDB();
 
 // Connect to Cloudinary for image uploads
 connectCloudinary();
+
+// Ensure uploads directory exists
+ensureUploadsDir();
 
 // CORS setup - allow list or all origins based on env var
 const allowedOrigins = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [];
@@ -48,9 +56,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/instructors', instructorRoutes);
+// Instructor dashboard routes removed - functionality moved to admin panel
+app.use('/api/bookings', bookingRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminInstructorRoutes);
+app.use('/api/instructor', instructorApiRoutes);
 
 // Basic health check or welcome route
 app.get('/', (req, res) => {

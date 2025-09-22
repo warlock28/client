@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   BookOpen, 
@@ -11,9 +11,12 @@ import {
   TrendingUp
 } from 'lucide-react'
 import { coursesData } from '../data/coursesData'
+import { AppContext } from '../context/AppContext'
+import { toast } from 'react-toastify'
 
 const TopCourses = () => {
   const navigate = useNavigate()
+  const { token, userData } = useContext(AppContext)
   const [hoveredCourse, setHoveredCourse] = useState(null)
 
   return (
@@ -113,15 +116,17 @@ const TopCourses = () => {
                   </h4>
                   <div className="space-y-1">
                     {/* Show only 2 features on mobile, 4 on desktop */}
-                    {course.highlights.slice(0, window.innerWidth < 640 ? 2 : 4).map((highlight, index) => (
-                      <div key={index} className="flex items-start text-xs sm:text-sm text-gray-600">
+                    {course.highlights.slice(0, 4).map((highlight, index) => (
+                      <div key={index} className={`flex items-start text-xs sm:text-sm text-gray-600 ${index >= 2 ? 'hidden sm:flex' : ''}`}>
                         <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2 mt-2 flex-shrink-0"></div>
                         <span className="line-clamp-1">{highlight}</span>
                       </div>
                     ))}
-                    <p className="text-xs text-blue-600 font-medium ml-3.5">
-                      +{course.highlights.length - (window.innerWidth < 640 ? 2 : 4)} more features
-                    </p>
+                    {course.highlights.length > 4 && (
+                      <p className="text-xs text-blue-600 font-medium ml-3.5">
+                        +{course.highlights.length - 4} more features
+                      </p>
+                    )}
                   </div>
                 </div>
 

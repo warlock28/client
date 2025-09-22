@@ -1,5 +1,5 @@
 import Instructor from '../models/Instructor.js';
-import User from '../models/User.js';
+import User from '../models/user.js';
 import Course from '../models/Course.js';
 
 // Get all instructors (public)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { assets } from '../assets/assets'
 import { 
   ChevronRight, 
@@ -7,13 +7,29 @@ import {
   Play,
   ArrowRight
 } from 'lucide-react'
+import { AppContext } from '../context/AppContext'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const Header = () => {
   const [isVisible, setIsVisible] = useState(false)
+  const { token, userData } = useContext(AppContext)
+  const navigate = useNavigate()
 
   useEffect(() => {
     setIsVisible(true)
   }, [])
+
+  const handleConsultationClick = (e) => {
+    e.preventDefault()
+    if (!token || !userData) {
+      toast.error('Please sign in to book consultations')
+      navigate('/login?mode=login')
+      return
+    }
+    // Navigate to instructors section
+    document.getElementById('speciality')?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -96,15 +112,15 @@ const Header = () => {
 
             {/* CTA Buttons - Responsive layout */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <a 
-                href='#speciality' 
+              <button 
+                onClick={handleConsultationClick}
                 className="w-full sm:w-auto group inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl sm:rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
               >
                 <span className="flex items-center">
-                  Book Consultation
+                  {token && userData ? 'Book Consultation' : 'Sign in to Book'}
                   <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
-              </a>
+              </button>
 
               
             </div>

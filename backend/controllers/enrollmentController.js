@@ -1,7 +1,7 @@
 import Appointment from '../models/Appointment.js';
 import Payment from '../models/Payment.js';
 import Course from '../models/Course.js';
-import User from '../models/User.js';
+import User from '../models/user.js';
 import { sendEnrollmentEmail } from '../utils/sendEmail.js'; // Assume implemented
 
 // User enrolls in a course and schedules appointment

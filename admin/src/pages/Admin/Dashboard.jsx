@@ -1,67 +1,103 @@
 import React, { useContext, useEffect } from 'react'
-import { assets } from '../../assets/assets'
-import { AdminContext } from '../../context/AdminContext'
 import { AppContext } from '../../context/AppContext'
+import { assets } from '../../assets/assets'
 
 const Dashboard = () => {
+    const { dashboardData, getDashboardData, loading } = useContext(AppContext)
 
-  const { aToken, getDashData, cancelAppointment, dashData } = useContext(AdminContext)
-  const { slotDateFormat } = useContext(AppContext)
+    useEffect(() => {
+        getDashboardData()
+    }, [])
 
-  useEffect(() => {
-    if (aToken) {
-      getDashData()
-    }
-  }, [aToken])
-
-  return dashData && (
-    <div className='m-5'>
-
-      <div className='flex flex-wrap gap-3'>
-        <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
-          <img className='w-14' src={assets.doctor_icon} alt="" />
-          <div>
-            <p className='text-xl font-semibold text-gray-600'>{dashData.doctors}</p>
-            <p className='text-gray-400'>Doctors</p>
-          </div>
-        </div>
-        <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
-          <img className='w-14' src={assets.appointments_icon} alt="" />
-          <div>
-            <p className='text-xl font-semibold text-gray-600'>{dashData.appointments}</p>
-            <p className='text-gray-400'>Appointments</p>
-          </div>
-        </div>
-        <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
-          <img className='w-14' src={assets.patients_icon} alt="" />
-          <div>
-            <p className='text-xl font-semibold text-gray-600'>{dashData.patients}</p>
-            <p className='text-gray-400'>Patients</p></div>
-        </div>
-      </div>
-
-      <div className='bg-white'>
-        <div className='flex items-center gap-2.5 px-4 py-4 mt-10 rounded-t border'>
-          <img src={assets.list_icon} alt="" />
-          <p className='font-semibold'>Latest Bookings</p>
-        </div>
-
-        <div className='pt-4 border border-t-0'>
-          {dashData.latestAppointments.slice(0, 5).map((item, index) => (
-            <div className='flex items-center px-6 py-3 gap-3 hover:bg-gray-100' key={index}>
-              <img className='rounded-full w-10' src={item.docData.image} alt="" />
-              <div className='flex-1 text-sm'>
-                <p className='text-gray-800 font-medium'>{item.docData.name}</p>
-                <p className='text-gray-600 '>Booking on {slotDateFormat(item.slotDate)}</p>
-              </div>
-              {item.cancelled ? <p className='text-red-400 text-xs font-medium'>Cancelled</p> : item.isCompleted ? <p className='text-green-500 text-xs font-medium'>Completed</p> : <img onClick={() => cancelAppointment(item._id)} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />}
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
-          ))}
-        </div>
-      </div>
+        )
+    }
 
-    </div>
-  )
+    const StatCard = ({ title, count, icon, color = "blue" }) => (
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-sm font-medium text-gray-600">{title}</p>
+                    <p className="text-3xl font-bold text-gray-800">{count || 0}</p>
+                </div>
+                <div className={`bg-${color}-100 p-3 rounded-full`}>
+                    <img src={icon} alt="" className="w-6 h-6" />
+                </div>
+            </div>
+        </div>
+    )
+
+    return (
+        <div className="m-5 w-full max-w-6xl">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard
+                    title="Total Instructors"
+                    count={dashboardData?.instructors}
+                    icon={assets.people_icon}
+                />
+                
+                <StatCard
+                    title="Total Students"
+                    count={dashboardData?.users}
+                    icon={assets.patient_icon}
+                />
+                
+                <StatCard
+                    title="Total Consultations"
+                    count={dashboardData?.appointments}
+                    icon={assets.appointment_icon}
+                />
+                
+                <StatCard
+                    title="Total Earnings"
+                    count={`$${dashboardData?.earnings || 0}`}
+                    icon={assets.earning_icon}
+                />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h2>
+                    <div className="space-y-3">
+                        {dashboardData?.recentActivity?.length > 0 ? (
+                            dashboardData.recentActivity.map((activity, index) => (
+                                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded">
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                    <p className="text-sm text-gray-700">{activity}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-gray-500 text-sm">No recent activity</p>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">System Status</h2>
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-green-50 rounded">
+                            <span className="text-sm font-medium text-gray-700">System Status</span>
+                            <span className="text-sm text-green-600 font-semibold">Online</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
+                            <span className="text-sm font-medium text-gray-700">Database</span>
+                            <span className="text-sm text-blue-600 font-semibold">Connected</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                            <span className="text-sm font-medium text-gray-700">Last Updated</span>
+                            <span className="text-sm text-gray-600">{new Date().toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 export default Dashboard

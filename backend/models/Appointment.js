@@ -6,6 +6,7 @@ const appointmentSchema = new mongoose.Schema({
   instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'Instructor' },
   date: { type: Date, required: true },
   status: { type: String, enum: ['scheduled', 'confirmed', 'completed', 'cancelled'], default: 'scheduled' },
+  notes: { type: String, default: '' },
 }, {
   timestamps: true,
 });
